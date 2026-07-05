@@ -21,6 +21,12 @@ public enum SampleData {
               time: referenceNow.addingTimeInterval(-9 * 3600)),
         Quake(id: "s3", magnitude: 4.7, place: "12 km NE of Ridgecrest, CA",
               time: referenceNow.addingTimeInterval(-30 * 3600)),
+        Quake(id: "s4", magnitude: 5.8, place: "South of the Fiji Islands",
+              time: referenceNow.addingTimeInterval(-41 * 3600)),
+        Quake(id: "s5", magnitude: 4.9, place: "64 km W of Cantwell, Alaska",
+              time: referenceNow.addingTimeInterval(-52 * 3600)),
+        Quake(id: "s6", magnitude: 4.5, place: "near the coast of central Chile",
+              time: referenceNow.addingTimeInterval(-70 * 3600)),
     ]
 
     /// A "San" query, including two same-name cities to show disambiguation.

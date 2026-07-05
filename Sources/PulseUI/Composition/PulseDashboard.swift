@@ -95,4 +95,25 @@ public enum PulseDashboard {
         )
         .background(DashboardContentView.canvas)
     }
+
+    /// The earthquakes detail screen — the full sample list, the same rows
+    /// `QuakesDetailView` draws once its model loads. Static so `ImageRenderer`
+    /// can capture it.
+    @MainActor
+    public static func sampleQuakesDetail(now: Date = SampleData.referenceNow) -> some View {
+        let accent = Color(hex: BrandConfig().accentColorHex, fallback: .blue)
+        return VStack(alignment: .leading, spacing: 14) {
+            ModuleCard(title: "Recent earthquakes", accent: accent) {
+                QuakesCard(
+                    quakes: SampleData.quakes,
+                    fetchedAt: now.addingTimeInterval(-6 * 60),
+                    isStale: false,
+                    now: now,
+                    limit: SampleData.quakes.count
+                )
+            }
+        }
+        .padding(16)
+        .background(DashboardContentView.canvas)
+    }
 }

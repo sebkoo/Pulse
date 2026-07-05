@@ -78,4 +78,8 @@ try await MainActor.run {
         PulseDashboard.sampleCitySearchWeather(),
         to: outputDirectory.appendingPathComponent("city-search-weather.png")
     )
+    try render(
+        PulseDashboard.sampleQuakesDetail(),
+        to: outputDirectory.appendingPathComponent("earthquakes-detail.png")
+    )
 }
