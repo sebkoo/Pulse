@@ -14,6 +14,49 @@
 
 Every column is the same code with a different `Brand.json` — name, accent color, and module set/order all come from config. Images are rendered from the real SwiftUI views with fixed sample data (`swift run pulse-screenshots`); the earthquakes card is deliberately shown stale so the offline chip is visible.
 
+## Fork & rebrand in 3 steps
+
+1. **Fork** this repo.
+2. **Edit `Brand.json`** — name, accent color, and which modules render, in what order:
+   ```json
+   { "appName": "Acme Field Ops", "accentColorHex": "#E05910", "modules": ["earthquakes", "weather"] }
+   ```
+3. **Ship.** No code changes. To swap in your commercial data source, implement `DataProvider`
+   (one file), add one entry to the module catalog, and put its id in `Brand.json` — `DashboardView`
+   never changes. That swap path is the whole point of the architecture.
+
+## Architecture
+
+```
+Brand.json ──► BrandConfig ─────────────┐  (name, accent, module order)
+                                        ▼
+ DataProvider (protocol) ──► ModuleModel (@Observable) ──► DashboardView
+   ├── OpenMeteoProvider        │ loading / loaded / failed     │ renders whatever
+   └── USGSQuakesProvider       ▼                               ▼ descriptors it gets
+                          PayloadCache (actor) ──► ProviderResult(fetchedAt, isStale)
+                          offline-first, corruption-as-miss     └► StalenessChip (honesty in the UI)
+```
+
+- **PulseCore** — config, provider contract, caching. UI-free, unit-testable anywhere.
+- **PulseProviders** — concrete keyless-API providers; each normalizes its wire shape at one boundary.
+- **PulseUI** — SwiftUI + Observation; a pure function of config and payloads.
+
+## Decisions
+
+| Decision | Why |
+| --- | --- |
+| **Observation over Combine** | Less ceremony for view models (no AnyCancellable bookkeeping), compile-time observed properties, and it's the direction Apple is investing in for iOS 17+. Combine remains great for streams; nothing here is a stream. |
+| **Actor cache over locks/queues** | Data-race safety by construction; the compiler enforces what a `DispatchQueue` convention only suggests. |
+| **Cache exposes age, not a TTL** | "Too stale" is a product decision that differs per module and per customer; storage shouldn't decide it. |
+| **Config-over-code white-labeling** | A fork-and-ship customer edits data, not Swift. Per-field decode defaults mean a broken brand file downgrades instead of crashing. |
+| **Keyless public APIs** | Any reviewer can clone → build → test with zero setup. Reproducibility is a feature. |
+| **SPM package, no .xcodeproj** | `swift build && swift test` works headlessly — locally and in CI — and Xcode opens the package directly. |
+
+## Data source licensing
+
+- **Open-Meteo** is free for **non-commercial** use ([terms](https://open-meteo.com/en/terms)). A company shipping Pulse commercially swaps in its licensed weather provider — implement `DataProvider`, register it in the catalog, done (see *Fork & rebrand*).
+- **USGS** earthquake feeds are U.S. government **public domain**.
+
 ## Roadmap
 
 - [x] docs: add README with project vision and roadmap
@@ -27,4 +70,4 @@ Every column is the same code with a different `Brand.json` — name, accent col
 - [x] feat: render dashboard modules driven by config
 - [x] ci: add GitHub Actions workflow (build + test, macOS runner)
 - [x] docs: add multi-brand screenshots rendered from the real views
-- [ ] docs: add architecture notes + rebrand-in-3-steps
+- [x] docs: add architecture notes + rebrand-in-3-steps + decisions log
