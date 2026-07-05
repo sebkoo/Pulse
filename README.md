@@ -24,6 +24,14 @@ Type a city, get its weather. The search field debounces keystrokes with **Combi
 
 This is where the Observation/Combine boundary shows up in code: view-model **state** stays on Observation, while the **stream** of keystrokes uses Combine's `debounce` — see [Decisions](#decisions). Both screens render from the real `CitySearchContentView` with fixed sample data, same pipeline as the brand gallery.
 
+## Navigation
+
+Tap a dashboard card to drill in: weather opens city search, earthquakes opens the full list. A typed `Router` owns the navigation path and `DashboardView` resolves every route to a screen in one place — the cards say "go here," never "how."
+
+![Earthquakes detail — the full list of recent quakes](docs/screenshots/earthquakes-detail.png)
+
+The first cut deliberately had *no* coordinator — with one screen there was nothing to route. The `Router` arrived with the detail screens, when navigation became real; see [Decisions](#decisions).
+
 ## Fork & rebrand in 3 steps
 
 1. **Fork** this repo.
@@ -56,6 +64,7 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 | Decision | Why |
 | --- | --- |
 | **Observation for state, Combine for streams** | View-model state uses Observation — no `AnyCancellable` bookkeeping, compile-time observed properties, the direction Apple is investing in for iOS 17+. The one genuine *stream*, debounced city search, uses Combine's `debounce` — exactly what it's built for (`CitySearchModel`). Matching the tool to state-vs-stream beats forcing one framework everywhere. |
+| **A router, added when navigation appeared** | One screen needed no coordinator — routing nothing is ceremony. Detail screens introduced real navigation, so a typed `Router` owns the path and `DashboardView` maps routes to screens in one place. Introduce the pattern when the need shows up, not before. |
 | **Actor cache over locks/queues** | Data-race safety by construction; the compiler enforces what a `DispatchQueue` convention only suggests. |
 | **Cache exposes age, not a TTL** | "Too stale" is a product decision that differs per module and per customer; storage shouldn't decide it. |
 | **Config-over-code white-labeling** | A fork-and-ship customer edits data, not Swift. Per-field decode defaults mean a broken brand file downgrades instead of crashing. |
