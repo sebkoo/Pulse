@@ -14,5 +14,6 @@ let package = Package(
         .target(name: "PulseProviders", dependencies: ["PulseCore"]),
         .target(name: "PulseUI", dependencies: ["PulseCore", "PulseProviders"]),
         .testTarget(name: "PulseCoreTests", dependencies: ["PulseCore"]),
+        .testTarget(name: "PulseProvidersTests", dependencies: ["PulseProviders"]),
     ]
 )

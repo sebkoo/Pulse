@@ -12,7 +12,7 @@
 - [x] feat: scaffold modular package targets — Core / Providers / UI (iOS 17+)
 - [x] feat: add BrandConfig loader (Brand.json → name, accent, modules)
 - [x] feat: add DataProvider protocol with async fetch + cache hooks
-- [ ] feat: add Open-Meteo weather provider (keyless) with unit tests
+- [x] feat: add Open-Meteo weather provider (keyless) with unit tests
 - [ ] feat: add USGS earthquake provider (keyless) with unit tests
 - [ ] feat: render dashboard modules driven by config
 - [ ] ci: add GitHub Actions workflow (build + test, macOS runner)
