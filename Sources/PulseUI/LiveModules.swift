@@ -69,6 +69,31 @@ public enum PulseDashboard {
         ]
     }
 
+    /// Deterministic catalog for previews and screenshot rendering: the same
+    /// card views, fixed `SampleData`, zero network. The quakes card is
+    /// deliberately rendered stale so the offline chip is visible.
+    @MainActor
+    public static func sampleModules(now: Date = SampleData.referenceNow) -> [DashboardModule] {
+        [
+            DashboardModule(id: "weather", title: "Weather") {
+                WeatherCard(
+                    snapshot: SampleData.weather,
+                    fetchedAt: now.addingTimeInterval(-4 * 60),
+                    isStale: false,
+                    now: now
+                )
+            },
+            DashboardModule(id: "earthquakes", title: "Earthquakes") {
+                QuakesCard(
+                    quakes: SampleData.quakes,
+                    fetchedAt: now.addingTimeInterval(-12 * 60),
+                    isStale: true,
+                    now: now
+                )
+            },
+        ]
+    }
+
     /// Ready-to-mount root view: brand from the bundle, standard catalog.
     @MainActor
     public static func root(bundle: Bundle = .main) -> some View {

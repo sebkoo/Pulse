@@ -11,6 +11,29 @@ import PulseCore
 public struct DashboardView: View {
     private let config: BrandConfig
     private let modules: [DashboardModule]
+
+    public init(config: BrandConfig, modules: [DashboardModule]) {
+        self.config = config
+        self.modules = modules
+    }
+
+    public var body: some View {
+        ScrollView {
+            DashboardContentView(config: config, modules: modules)
+        }
+        .background(DashboardContentView.canvas)
+        .tint(Color(hex: config.accentColorHex, fallback: .blue))
+    }
+}
+
+/// The dashboard's content without the ScrollView — split out so previews
+/// and the screenshot renderer (`ImageRenderer` cannot render ScrollView
+/// content) draw exactly what the app draws.
+public struct DashboardContentView: View {
+    static let canvas = Color(red: 0.949, green: 0.956, blue: 0.968)
+
+    private let config: BrandConfig
+    private let modules: [DashboardModule]
     private let accent: Color
 
     public init(config: BrandConfig, modules: [DashboardModule]) {
@@ -20,19 +43,16 @@ public struct DashboardView: View {
     }
 
     public var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                header
-                ForEach(orderedModules) { module in
-                    ModuleCard(title: module.title, accent: accent) {
-                        module.body()
-                    }
+        VStack(alignment: .leading, spacing: 14) {
+            header
+            ForEach(orderedModules) { module in
+                ModuleCard(title: module.title, accent: accent) {
+                    module.body()
                 }
             }
-            .padding(16)
         }
-        .background(Color(hex: "#F4F5F7", fallback: .gray).opacity(0.6))
-        .tint(accent)
+        .padding(16)
+        .background(Self.canvas)
     }
 
     private var header: some View {
