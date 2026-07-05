@@ -11,7 +11,7 @@
 - [x] chore: add MIT license
 - [x] feat: scaffold modular package targets — Core / Providers / UI (iOS 17+)
 - [x] feat: add BrandConfig loader (Brand.json → name, accent, modules)
-- [ ] feat: add DataProvider protocol with async fetch + cache hooks
+- [x] feat: add DataProvider protocol with async fetch + cache hooks
 - [ ] feat: add Open-Meteo weather provider (keyless) with unit tests
 - [ ] feat: add USGS earthquake provider (keyless) with unit tests
 - [ ] feat: render dashboard modules driven by config
