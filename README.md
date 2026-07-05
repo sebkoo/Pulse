@@ -8,7 +8,7 @@
 
 - [x] docs: add README with project vision and roadmap
 - [x] chore: add Swift/Xcode .gitignore
-- [ ] chore: add MIT license
+- [x] chore: add MIT license
 - [ ] feat: scaffold SwiftUI app target (iOS 17+)
 - [ ] feat: add BrandConfig loader (Brand.json → name, accent, modules)
 - [ ] feat: add DataProvider protocol with async fetch + cache hooks
