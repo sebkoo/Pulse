@@ -7,7 +7,7 @@
 ## Roadmap
 
 - [x] docs: add README with project vision and roadmap
-- [ ] chore: add Swift/Xcode .gitignore
+- [x] chore: add Swift/Xcode .gitignore
 - [ ] chore: add MIT license
 - [ ] feat: scaffold SwiftUI app target (iOS 17+)
 - [ ] feat: add BrandConfig loader (Brand.json → name, accent, modules)
