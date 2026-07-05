@@ -14,6 +14,16 @@
 
 Every column is the same code with a different `Brand.json` — name, accent color, and module set/order all come from config. Images are rendered from the real SwiftUI views with fixed sample data (`swift run pulse-screenshots`); the earthquakes card is deliberately shown stale so the offline chip is visible.
 
+## City search
+
+Type a city, get its weather. The search field debounces keystrokes with **Combine** (`CitySearchModel`), queries Open-Meteo's keyless geocoder, and a pick reuses the **same** `WeatherCard` and `ModuleModel` the dashboard renders — so search and dashboard can't drift apart.
+
+| Debounced search | Picked city |
+| --- | --- |
+| ![City search results for "San"](docs/screenshots/city-search.png) | ![Current weather for the picked city](docs/screenshots/city-search-weather.png) |
+
+This is where the Observation/Combine boundary shows up in code: view-model **state** stays on Observation, while the **stream** of keystrokes uses Combine's `debounce` — see [Decisions](#decisions). Both screens render from the real `CitySearchContentView` with fixed sample data, same pipeline as the brand gallery.
+
 ## Fork & rebrand in 3 steps
 
 1. **Fork** this repo.
