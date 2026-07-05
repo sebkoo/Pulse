@@ -4,6 +4,14 @@
 
 > ⚙️ **Workflow transparency:** built with an AI-assisted workflow (Claude as pair programmer — see the commit trailers); the architecture decisions, code review, and final call on every line are mine.
 
+## One codebase, three brands
+
+| Pulse (default) | Acme Field Ops | Marina Weather |
+| --- | --- | --- |
+| ![Pulse default brand](docs/screenshots/pulse-default.png) | ![Acme Field Ops brand](docs/screenshots/acme-field-ops.png) | ![Marina Weather brand](docs/screenshots/marina-weather.png) |
+
+Every column is the same code with a different `Brand.json` — name, accent color, and module set/order all come from config. Images are rendered from the real SwiftUI views with fixed sample data (`swift run pulse-screenshots`); the earthquakes card is deliberately shown stale so the offline chip is visible.
+
 ## Roadmap
 
 - [x] docs: add README with project vision and roadmap
@@ -16,4 +24,5 @@
 - [x] feat: add USGS earthquake provider (keyless) with unit tests
 - [x] feat: render dashboard modules driven by config
 - [ ] ci: add GitHub Actions workflow (build + test, macOS runner)
-- [ ] docs: add architecture notes, rebrand-in-3-steps, screenshots
+- [x] docs: add multi-brand screenshots rendered from the real views
+- [ ] docs: add architecture notes + rebrand-in-3-steps
