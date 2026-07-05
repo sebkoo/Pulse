@@ -21,12 +21,41 @@ struct CitySearchView: View {
     }
 
     var body: some View {
+        CitySearchContentView(
+            query: $model.query,
+            phase: model.phase,
+            detail: selected.map { place in
+                AnyView(WeatherResultView(place: place, accent: accent).id(place.id))
+            },
+            accent: accent,
+            onSelect: { selected = $0 },
+            onClear: {
+                model.query = ""
+                selected = nil
+            },
+            onBack: { selected = nil }
+        )
+    }
+}
+
+/// The search screen as a pure function of its inputs — no model, no async — so
+/// `ImageRenderer` can screenshot it deterministically. Same reason
+/// `DashboardContentView` is split out of `DashboardView`.
+struct CitySearchContentView: View {
+    @Binding var query: String
+    let phase: CitySearchModel.Phase
+    var detail: AnyView?
+    var accent: Color = .blue
+    var onSelect: (GeocodedPlace) -> Void = { _ in }
+    var onClear: () -> Void = {}
+    var onBack: () -> Void = {}
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             searchField
-            if let place = selected {
+            if let detail {
                 backButton
-                WeatherResultView(place: place, accent: accent)
-                    .id(place.id)
+                detail
             } else {
                 results
             }
@@ -39,14 +68,11 @@ struct CitySearchView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("Search a city", text: $model.query)
+            TextField("Search a city", text: $query)
                 .textFieldStyle(.plain)
                 .autocorrectionDisabled()
-            if !model.query.isEmpty {
-                Button {
-                    model.query = ""
-                    selected = nil
-                } label: {
+            if !query.isEmpty {
+                Button(action: onClear) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
                 }
@@ -63,7 +89,7 @@ struct CitySearchView: View {
 
     @ViewBuilder
     private var results: some View {
-        switch model.phase {
+        switch phase {
         case .idle:
             hint("Type to search cities.")
         case .searching:
@@ -79,7 +105,7 @@ struct CitySearchView: View {
         case .results(let places):
             VStack(spacing: 0) {
                 ForEach(places) { place in
-                    Button { selected = place } label: {
+                    Button { onSelect(place) } label: {
                         HStack {
                             Text(place.displayName)
                                 .font(.callout)
@@ -102,7 +128,7 @@ struct CitySearchView: View {
     }
 
     private var backButton: some View {
-        Button { selected = nil } label: {
+        Button(action: onBack) {
             Label("Back to results", systemImage: "chevron.left")
                 .font(.callout)
                 .foregroundStyle(accent)
