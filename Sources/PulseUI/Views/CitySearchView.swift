@@ -46,6 +46,9 @@ struct CitySearchContentView: View {
     let phase: CitySearchModel.Phase
     var detail: AnyView?
     var accent: Color = .blue
+    /// `ImageRenderer` can't rasterize a live `TextField`, so screenshots render
+    /// the query as static text instead. The app leaves this false.
+    var staticField: Bool = false
     var onSelect: (GeocodedPlace) -> Void = { _ in }
     var onClear: () -> Void = {}
     var onBack: () -> Void = {}
@@ -68,9 +71,17 @@ struct CitySearchContentView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("Search a city", text: $query)
-                .textFieldStyle(.plain)
-                .autocorrectionDisabled()
+            Group {
+                if staticField {
+                    Text(query.isEmpty ? "Search a city" : query)
+                        .foregroundStyle(query.isEmpty ? .secondary : .primary)
+                } else {
+                    TextField("Search a city", text: $query)
+                        .textFieldStyle(.plain)
+                        .autocorrectionDisabled()
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             if !query.isEmpty {
                 Button(action: onClear) {
                     Image(systemName: "xmark.circle.fill")

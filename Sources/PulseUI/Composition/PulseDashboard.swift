@@ -55,4 +55,44 @@ public enum PulseDashboard {
             modules: standardModules()
         )
     }
+
+    // MARK: - Screenshot samples
+
+    /// The city search mid-query, showing matched cities. Deterministic and
+    /// model-free so `ImageRenderer` can capture it.
+    @MainActor
+    public static func sampleCitySearchResults() -> some View {
+        CitySearchContentView(
+            query: .constant("San"),
+            phase: .results(SampleData.searchResults),
+            staticField: true
+        )
+        .background(DashboardContentView.canvas)
+    }
+
+    /// A city picked from the results, showing its current weather — the same
+    /// card the dashboard renders, fixed sample data, no network.
+    @MainActor
+    public static func sampleCitySearchWeather(now: Date = SampleData.referenceNow) -> some View {
+        let place = SampleData.searchResults[0]
+        let accent = Color(hex: BrandConfig().accentColorHex, fallback: .blue)
+        let detail = AnyView(
+            ModuleCard(title: place.displayName, accent: accent) {
+                WeatherCard(
+                    snapshot: SampleData.weather,
+                    fetchedAt: now.addingTimeInterval(-3 * 60),
+                    isStale: false,
+                    now: now
+                )
+            }
+        )
+        return CitySearchContentView(
+            query: .constant(place.name),
+            phase: .results(SampleData.searchResults),
+            detail: detail,
+            accent: accent,
+            staticField: true
+        )
+        .background(DashboardContentView.canvas)
+    }
 }

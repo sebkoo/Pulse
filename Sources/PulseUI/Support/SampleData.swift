@@ -22,4 +22,16 @@ public enum SampleData {
         Quake(id: "s3", magnitude: 4.7, place: "12 km NE of Ridgecrest, CA",
               time: referenceNow.addingTimeInterval(-30 * 3600)),
     ]
+
+    /// A "San" query, including two same-name cities to show disambiguation.
+    public static let searchResults: [GeocodedPlace] = [
+        GeocodedPlace(id: 5391959, name: "San Francisco", admin1: "California",
+                      country: "United States", latitude: 37.7749, longitude: -122.4194),
+        GeocodedPlace(id: 5391811, name: "San Diego", admin1: "California",
+                      country: "United States", latitude: 32.7157, longitude: -117.1611),
+        GeocodedPlace(id: 5392171, name: "San Jose", admin1: "California",
+                      country: "United States", latitude: 37.3382, longitude: -121.8863),
+        GeocodedPlace(id: 3621849, name: "San José", admin1: "San José",
+                      country: "Costa Rica", latitude: 9.9281, longitude: -84.0907),
+    ]
 }

@@ -3,7 +3,8 @@
 //
 //     swift run pulse-screenshots docs/screenshots
 //
-// Three brands, one codebase: the point of the whole architecture.
+// Three brands plus the city-search screens, one codebase: the point of the
+// whole architecture.
 
 import SwiftUI
 import ImageIO
@@ -12,14 +13,18 @@ import PulseCore
 import PulseUI
 import PulseProviders
 
-@MainActor
-func render(config: BrandConfig, to url: URL) throws {
-    // DashboardContentView, not DashboardView: ImageRenderer cannot render
-    // ScrollView content, and the content view is exactly what the app draws.
-    let view = DashboardContentView(config: config, modules: PulseDashboard.sampleModules())
-        .frame(width: 390)
+enum RenderError: Error {
+    case noImage(String)
+    case noDestination(String)
+    case writeFailed(String)
+}
 
-    let renderer = ImageRenderer(content: view)
+/// Render any view to a PNG at a fixed phone width. Every sample passed in is a
+/// plain, model-free content view — `ImageRenderer` cannot render a `ScrollView`
+/// or await a `.task`, so these are exactly what the app draws, minus the async.
+@MainActor
+func render(_ view: some View, width: CGFloat = 390, to url: URL) throws {
+    let renderer = ImageRenderer(content: view.frame(width: width))
     renderer.scale = 2
 
     guard let cgImage = renderer.cgImage else {
@@ -35,12 +40,6 @@ func render(config: BrandConfig, to url: URL) throws {
         throw RenderError.writeFailed(url.lastPathComponent)
     }
     print("wrote \(url.path)")
-}
-
-enum RenderError: Error {
-    case noImage(String)
-    case noDestination(String)
-    case writeFailed(String)
 }
 
 let brands: [(file: String, config: BrandConfig)] = [
@@ -63,6 +62,20 @@ try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDir
 
 for brand in brands {
     try await MainActor.run { [brand] in
-        try render(config: brand.config, to: outputDirectory.appendingPathComponent(brand.file))
+        try render(
+            DashboardContentView(config: brand.config, modules: PulseDashboard.sampleModules()),
+            to: outputDirectory.appendingPathComponent(brand.file)
+        )
     }
+}
+
+try await MainActor.run {
+    try render(
+        PulseDashboard.sampleCitySearchResults(),
+        to: outputDirectory.appendingPathComponent("city-search.png")
+    )
+    try render(
+        PulseDashboard.sampleCitySearchWeather(),
+        to: outputDirectory.appendingPathComponent("city-search-weather.png")
+    )
 }
