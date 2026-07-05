@@ -45,7 +45,7 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 
 | Decision | Why |
 | --- | --- |
-| **Observation over Combine** | Less ceremony for view models (no AnyCancellable bookkeeping), compile-time observed properties, and it's the direction Apple is investing in for iOS 17+. Combine remains great for streams; nothing here is a stream. |
+| **Observation for state, Combine for streams** | View-model state uses Observation — no `AnyCancellable` bookkeeping, compile-time observed properties, the direction Apple is investing in for iOS 17+. The one genuine *stream*, debounced city search, uses Combine's `debounce` — exactly what it's built for (`CitySearchModel`). Matching the tool to state-vs-stream beats forcing one framework everywhere. |
 | **Actor cache over locks/queues** | Data-race safety by construction; the compiler enforces what a `DispatchQueue` convention only suggests. |
 | **Cache exposes age, not a TTL** | "Too stale" is a product decision that differs per module and per customer; storage shouldn't decide it. |
 | **Config-over-code white-labeling** | A fork-and-ship customer edits data, not Swift. Per-field decode defaults mean a broken brand file downgrades instead of crashing. |
