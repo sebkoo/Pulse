@@ -9,7 +9,7 @@
 - [x] docs: add README with project vision and roadmap
 - [x] chore: add Swift/Xcode .gitignore
 - [x] chore: add MIT license
-- [ ] feat: scaffold SwiftUI app target (iOS 17+)
+- [x] feat: scaffold modular package targets — Core / Providers / UI (iOS 17+)
 - [ ] feat: add BrandConfig loader (Brand.json → name, accent, modules)
 - [ ] feat: add DataProvider protocol with async fetch + cache hooks
 - [ ] feat: add Open-Meteo weather provider (keyless) with unit tests
