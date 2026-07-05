@@ -13,5 +13,6 @@ let package = Package(
         .target(name: "PulseCore"),
         .target(name: "PulseProviders", dependencies: ["PulseCore"]),
         .target(name: "PulseUI", dependencies: ["PulseCore", "PulseProviders"]),
+        .testTarget(name: "PulseCoreTests", dependencies: ["PulseCore"]),
     ]
 )
