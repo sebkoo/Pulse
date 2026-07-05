@@ -12,17 +12,39 @@ public struct DashboardView: View {
     private let config: BrandConfig
     private let modules: [DashboardModule]
 
+    @State private var router = Router()
+
     public init(config: BrandConfig, modules: [DashboardModule]) {
         self.config = config
         self.modules = modules
     }
 
     public var body: some View {
-        ScrollView {
-            DashboardContentView(config: config, modules: modules)
+        NavigationStack(path: $router.path) {
+            ScrollView {
+                DashboardContentView(config: config, modules: modules)
+            }
+            .background(DashboardContentView.canvas)
+            .navigationDestination(for: Route.self) { route in
+                destination(for: route)
+            }
         }
-        .background(DashboardContentView.canvas)
         .tint(Color(hex: config.accentColorHex, fallback: .blue))
+    }
+
+    /// The one place routes become screens — the coordinator's payoff: every
+    /// destination is resolved here, not scattered across the cards.
+    @ViewBuilder
+    private func destination(for route: Route) -> some View {
+        let accent = Color(hex: config.accentColorHex, fallback: .blue)
+        switch route {
+        case .weatherSearch:
+            CitySearchView(accent: accent)
+                .navigationTitle("Weather")
+        case .quakes:
+            QuakesDetailView(accent: accent)
+                .navigationTitle("Earthquakes")
+        }
     }
 }
 
@@ -46,8 +68,17 @@ public struct DashboardContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             header
             ForEach(orderedModules) { module in
-                ModuleCard(title: module.title, accent: accent) {
-                    module.body()
+                if let route = module.route {
+                    NavigationLink(value: route) {
+                        ModuleCard(title: module.title, accent: accent, showsDisclosure: true) {
+                            module.body()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    ModuleCard(title: module.title, accent: accent) {
+                        module.body()
+                    }
                 }
             }
         }

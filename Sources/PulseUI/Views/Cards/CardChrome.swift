@@ -5,6 +5,7 @@ import PulseCore
 struct ModuleCard<Content: View>: View {
     let title: String
     let accent: Color
+    var showsDisclosure: Bool = false
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -16,6 +17,11 @@ struct ModuleCard<Content: View>: View {
                 Text(title)
                     .font(.headline)
                 Spacer(minLength: 0)
+                if showsDisclosure {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
             }
             content()
         }

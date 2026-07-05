@@ -13,10 +13,10 @@ public enum PulseDashboard {
     @MainActor
     public static func standardModules(session: URLSession = .shared) -> [DashboardModule] {
         [
-            DashboardModule(id: "weather", title: "Weather") {
+            DashboardModule(id: "weather", title: "Weather", route: .weatherSearch) {
                 LiveWeatherModule(session: session)
             },
-            DashboardModule(id: "earthquakes", title: "Earthquakes") {
+            DashboardModule(id: "earthquakes", title: "Earthquakes", route: .quakes) {
                 LiveQuakesModule(session: session)
             },
         ]
