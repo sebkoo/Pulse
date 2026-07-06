@@ -34,3 +34,28 @@ jobs:
       - name: Build & test the server
         run: swift test
         working-directory: server
+
+  bff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: bff/package-lock.json
+
+      - name: Install
+        run: npm ci
+        working-directory: bff
+
+      - name: Typecheck
+        run: npm run typecheck
+        working-directory: bff
+
+      - name: Test
+        run: npm test
+        working-directory: bff
