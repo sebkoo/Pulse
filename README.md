@@ -43,6 +43,22 @@ The first cut deliberately had *no* coordinator — with one screen there was no
    (one file), add one entry to the module catalog, and put its id in `Brand.json` — `DashboardView`
    never changes. That swap path is the whole point of the architecture.
 
+## Backend — config over the wire
+
+The same white-labeling, one step further: instead of bundling `Brand.json`, a fork can serve brands from an API. [`server/`](server) is a small [Vapor](https://vapor.codes) service that path-depends on this package and returns the **exact same `BrandConfig`** the app decodes — one domain model, not two, so the wire contract can't drift from the client.
+
+```
+GET /health       → 200 "ok"
+GET /brands/:id   → that brand's BrandConfig as JSON (404 if unknown)
+```
+
+```bash
+cd server && swift run pulse-server     # serves on http://127.0.0.1:8080
+curl localhost:8080/brands/acme
+```
+
+On the client, `RemoteBrandProvider` fetches a brand and **falls back to a bundled default** on any failure — bad response, decode error, or no network — so the app still launches offline, the same stance as the data providers. The server is its own SPM package, so the iOS package keeps building with zero third-party dependencies.
+
 ## Architecture
 
 ```
@@ -65,6 +81,7 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 | --- | --- |
 | **Observation for state, Combine for streams** | View-model state uses Observation — no `AnyCancellable` bookkeeping, compile-time observed properties, the direction Apple is investing in for iOS 17+. The one genuine *stream*, debounced city search, uses Combine's `debounce` — exactly what it's built for (`CitySearchModel`). Matching the tool to state-vs-stream beats forcing one framework everywhere. |
 | **A router, added when navigation appeared** | One screen needed no coordinator — routing nothing is ceremony. Detail screens introduced real navigation, so a typed `Router` owns the path and `DashboardView` maps routes to screens in one place. Introduce the pattern when the need shows up, not before. |
+| **The server shares the app's domain model** | The brand service path-depends on `PulseCore` and returns the same `BrandConfig` the client decodes. One type, not a hand-kept-in-sync pair, so the HTTP contract can't silently drift from the app. |
 | **Actor cache over locks/queues** | Data-race safety by construction; the compiler enforces what a `DispatchQueue` convention only suggests. |
 | **Cache exposes age, not a TTL** | "Too stale" is a product decision that differs per module and per customer; storage shouldn't decide it. |
 | **Config-over-code white-labeling** | A fork-and-ship customer edits data, not Swift. Per-field decode defaults mean a broken brand file downgrades instead of crashing. |
