@@ -127,4 +127,12 @@ try await MainActor.run {
         PulseDashboard.walkthrough(),
         to: outputDirectory.appendingPathComponent("walkthrough.gif")
     )
+    try renderGIF(
+        PulseDashboard.walkthroughRebrand(),
+        to: outputDirectory.appendingPathComponent("rebrand.gif")
+    )
+    try renderGIF(
+        PulseDashboard.walkthroughSearch(),
+        to: outputDirectory.appendingPathComponent("search.gif")
+    )
 }

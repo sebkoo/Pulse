@@ -130,32 +130,54 @@ public enum PulseDashboard {
         ]
     }
 
-    // MARK: - Animated walkthrough
+    // MARK: - Animated walkthroughs
 
-    /// A scripted, start-to-finish tour rendered from the real views: loading →
-    /// loaded → two rebrands → drill into the earthquakes detail → search a city
-    /// → its weather. Each frame is a fixed-size, model-free view so
-    /// `ImageRenderer` can capture it; the executable stitches them into a GIF.
+    private static let acmeBrand = BrandConfig(
+        appName: "Acme Field Ops", accentColorHex: "#E05910", modules: ["earthquakes", "weather"])
+    private static let marinaBrand = BrandConfig(
+        appName: "Marina Weather", accentColorHex: "#0F766E", modules: ["weather"])
+
+    /// Fixed-size, model-free frame so `ImageRenderer` can capture it; the
+    /// executable stitches a sequence of these into a GIF.
+    @MainActor
+    private static func gifFrame(_ view: some View, _ seconds: Double) -> (view: AnyView, seconds: Double) {
+        let sized = view
+            .frame(width: 390, height: 440, alignment: .top)
+            .background(DashboardContentView.canvas)
+        return (AnyView(sized), seconds)
+    }
+
+    /// The full tour: loaded dashboard → two rebrands → earthquakes detail →
+    /// city search → the picked city's weather.
     @MainActor
     public static func walkthrough(now: Date = SampleData.referenceNow) -> [(view: AnyView, seconds: Double)] {
-        func frame(_ view: some View, _ seconds: Double) -> (view: AnyView, seconds: Double) {
-            let sized = view
-                .frame(width: 390, height: 440, alignment: .top)
-                .background(DashboardContentView.canvas)
-            return (AnyView(sized), seconds)
-        }
+        [
+            gifFrame(DashboardContentView(config: BrandConfig(), modules: sampleModules(now: now)), 1.8),
+            gifFrame(DashboardContentView(config: acmeBrand, modules: sampleModules(now: now)), 1.4),
+            gifFrame(DashboardContentView(config: marinaBrand, modules: sampleModules(now: now)), 1.4),
+            gifFrame(sampleQuakesDetail(now: now), 1.9),
+            gifFrame(sampleCitySearchResults(), 1.9),
+            gifFrame(sampleCitySearchWeather(now: now), 2.1),
+        ]
+    }
 
-        let pulse = BrandConfig()
-        let acme = BrandConfig(appName: "Acme Field Ops", accentColorHex: "#E05910", modules: ["earthquakes", "weather"])
-        let marina = BrandConfig(appName: "Marina Weather", accentColorHex: "#0F766E", modules: ["weather"])
+    /// One idea in motion: the same code, three brands.
+    @MainActor
+    public static func walkthroughRebrand(now: Date = SampleData.referenceNow) -> [(view: AnyView, seconds: Double)] {
+        [
+            gifFrame(DashboardContentView(config: BrandConfig(), modules: sampleModules(now: now)), 1.6),
+            gifFrame(DashboardContentView(config: acmeBrand, modules: sampleModules(now: now)), 1.6),
+            gifFrame(DashboardContentView(config: marinaBrand, modules: sampleModules(now: now)), 1.6),
+        ]
+    }
 
-        return [
-            frame(DashboardContentView(config: pulse, modules: sampleModules(now: now)), 1.8),
-            frame(DashboardContentView(config: acme, modules: sampleModules(now: now)), 1.4),
-            frame(DashboardContentView(config: marina, modules: sampleModules(now: now)), 1.4),
-            frame(sampleQuakesDetail(now: now), 1.9),
-            frame(sampleCitySearchResults(), 1.9),
-            frame(sampleCitySearchWeather(now: now), 2.1),
+    /// The search flow: empty field → matches for "San" → the picked weather.
+    @MainActor
+    public static func walkthroughSearch(now: Date = SampleData.referenceNow) -> [(view: AnyView, seconds: Double)] {
+        [
+            gifFrame(CitySearchContentView(query: .constant(""), phase: .idle, staticField: true), 1.3),
+            gifFrame(sampleCitySearchResults(), 1.9),
+            gifFrame(sampleCitySearchWeather(now: now), 2.2),
         ]
     }
 }
