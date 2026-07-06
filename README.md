@@ -6,6 +6,12 @@
 
 > ⚙️ **Workflow transparency:** built with an AI-assisted workflow (Claude as pair programmer — see the commit trailers); the architecture decisions, code review, and final call on every line are mine.
 
+## Demo
+
+A start-to-finish walkthrough — loaded dashboard → two rebrands → the earthquakes detail → city search → a picked city's weather. Every frame is rendered from the real SwiftUI views (`swift run pulse-screenshots`), no simulator:
+
+![Animated walkthrough of Pulse: dashboard, two rebrands, the earthquakes detail, and city search](docs/screenshots/walkthrough.gif)
+
 ## One codebase, three brands
 
 | Pulse (default) | Acme Field Ops | Marina Weather |
@@ -31,6 +37,12 @@ Tap a dashboard card to drill in: weather opens city search, earthquakes opens t
 ![Earthquakes detail — the full list of recent quakes](docs/screenshots/earthquakes-detail.png)
 
 The first cut deliberately had *no* coordinator — with one screen there was nothing to route. The `Router` arrived with the detail screens, when navigation became real; see [Decisions](#decisions).
+
+## Every state, handled
+
+Each module renders one of three phases — loading, loaded, or a readable, retryable failure — so a dead network degrades instead of crashing. Cached data is served with its age (the offline chip in the gallery above); a failed fetch says so plainly:
+
+![Error state — each module shows a readable, retryable message](docs/screenshots/state-error.png)
 
 ## Fork & rebrand in 3 steps
 
