@@ -104,6 +104,19 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 - **PulseProviders** — concrete keyless-API providers; each normalizes its wire shape at one boundary.
 - **PulseUI** — SwiftUI + Observation; a pure function of config and payloads.
 
+## Android — one Brand.json, two platforms
+
+The architecture isn't iOS-specific. [`android/`](android) is a Kotlin port of the core — the same `Brand.json`, the same offline-first provider contract — proving the design ports cleanly rather than just claiming it does:
+
+| iOS (Swift) | Android (Kotlin) |
+| --- | --- |
+| `@Observable` view model | `StateFlow` |
+| `actor` cache | `Mutex`-guarded cache |
+| `URLSession` + injected session | `HttpFetcher` fun interface |
+| `DataProvider` protocol | `DataProvider<T>` interface |
+
+The `core` module is pure Kotlin/JVM, so it builds and tests with just a JDK — no Android SDK: `cd android && ./gradlew :core:test`. The Jetpack Compose UI is the next layer on top.
+
 ## Decisions
 
 | Decision | Why |
@@ -112,6 +125,7 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 | **A router, added when navigation appeared** | One screen needed no coordinator — routing nothing is ceremony. Detail screens introduced real navigation, so a typed `Router` owns the path and `DashboardView` maps routes to screens in one place. Introduce the pattern when the need shows up, not before. |
 | **The server shares the app's domain model** | The brand service path-depends on `PulseCore` and returns the same `BrandConfig` the client decodes. One type, not a hand-kept-in-sync pair, so the HTTP contract can't silently drift from the app. |
 | **Two servers, each with one job** | Swift (Vapor) owns the domain and shares `BrandConfig` with the app; TypeScript (Node) owns aggregation — the client-tailored feed — where the JS BFF ecosystem is at home. Polyglot by role, not by résumé. |
+| **The core ports to Kotlin without a rewrite** | It's plain data, a provider contract, and a cache — no iOS-only concepts — so the Android core is a direct mirror (`StateFlow` for Observation, `Mutex` for the actor) reading the very same `Brand.json`. |
 | **Actor cache over locks/queues** | Data-race safety by construction; the compiler enforces what a `DispatchQueue` convention only suggests. |
 | **Cache exposes age, not a TTL** | "Too stale" is a product decision that differs per module and per customer; storage shouldn't decide it. |
 | **Config-over-code white-labeling** | A fork-and-ship customer edits data, not Swift. Per-field decode defaults mean a broken brand file downgrades instead of crashing. |
