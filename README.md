@@ -55,7 +55,7 @@ Each module renders one of three phases — loading, loaded, or a readable, retr
    (one file), add one entry to the module catalog, and put its id in `Brand.json` — `DashboardView`
    never changes. That swap path is the whole point of the architecture.
 
-## Backend — config over the wire
+## Brand service — config over the wire
 
 The same white-labeling, one step further: instead of bundling `Brand.json`, a fork can serve brands from an API. [`server/`](server) is a small [Vapor](https://vapor.codes) service that path-depends on this package and returns the **exact same `BrandConfig`** the app decodes — one domain model, not two, so the wire contract can't drift from the client.
 
@@ -70,6 +70,23 @@ curl localhost:8080/brands/acme
 ```
 
 On the client, `RemoteBrandProvider` fetches a brand and **falls back to a bundled default** on any failure — bad response, decode error, or no network — so the app still launches offline, the same stance as the data providers. The server is its own SPM package, so the iOS package keeps building with zero third-party dependencies.
+
+## Aggregating BFF — one tailored round-trip
+
+The brand service answers *"what is this brand?"*; a separate **backend-for-frontend** answers *"what goes on this brand's screen?"*. [`bff/`](bff) is a TypeScript/Express service that reads the brand from the Vapor service, then fetches **only** the modules that brand asks for — in parallel, in the brand's order — and returns one payload:
+
+```
+GET /feed/:brandId → { brand, modules: [ { id, weather?, quakes? } ] }
+```
+
+So the app fills its whole dashboard in a single request instead of fanning out to each API itself. On the client, `FeedProvider` decodes that straight into the existing `BrandConfig`, `WeatherSnapshot`, and `Quake` types.
+
+```bash
+cd bff && npm install && npm start     # http://127.0.0.1:8081 (expects the brand service on :8080)
+curl localhost:8081/feed/acme
+```
+
+Upstreams sit behind an injected gateway, so the whole thing tests with no network (`npm test`).
 
 ## Architecture
 
@@ -94,6 +111,7 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 | **Observation for state, Combine for streams** | View-model state uses Observation — no `AnyCancellable` bookkeeping, compile-time observed properties, the direction Apple is investing in for iOS 17+. The one genuine *stream*, debounced city search, uses Combine's `debounce` — exactly what it's built for (`CitySearchModel`). Matching the tool to state-vs-stream beats forcing one framework everywhere. |
 | **A router, added when navigation appeared** | One screen needed no coordinator — routing nothing is ceremony. Detail screens introduced real navigation, so a typed `Router` owns the path and `DashboardView` maps routes to screens in one place. Introduce the pattern when the need shows up, not before. |
 | **The server shares the app's domain model** | The brand service path-depends on `PulseCore` and returns the same `BrandConfig` the client decodes. One type, not a hand-kept-in-sync pair, so the HTTP contract can't silently drift from the app. |
+| **Two servers, each with one job** | Swift (Vapor) owns the domain and shares `BrandConfig` with the app; TypeScript (Node) owns aggregation — the client-tailored feed — where the JS BFF ecosystem is at home. Polyglot by role, not by résumé. |
 | **Actor cache over locks/queues** | Data-race safety by construction; the compiler enforces what a `DispatchQueue` convention only suggests. |
 | **Cache exposes age, not a TTL** | "Too stale" is a product decision that differs per module and per customer; storage shouldn't decide it. |
 | **Config-over-code white-labeling** | A fork-and-ship customer edits data, not Swift. Per-field decode defaults mean a broken brand file downgrades instead of crashing. |
