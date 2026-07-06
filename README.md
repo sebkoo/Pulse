@@ -104,6 +104,27 @@ Brand.json ──► BrandConfig ─────────────┐  (na
 - **PulseProviders** — concrete keyless-API providers; each normalizes its wire shape at one boundary.
 - **PulseUI** — SwiftUI + Observation; a pure function of config and payloads.
 
+## Project layout
+
+The iOS folders map straight onto **MVVM-Coordinator**, and the whole repo is one polyglot monorepo:
+
+```
+Sources/            iOS app — MVVM-Coordinator
+  PulseCore/        Model — config, provider contract, cache (UI-free package)
+  PulseProviders/   Model — concrete keyless-API providers
+  PulseUI/
+    ViewModels/     ModuleModel, CitySearchModel
+    Views/          DashboardView, Cards/, detail screens
+    Navigation/     Coordinator — Route + Router
+    Composition/    composition root — wires providers → view models → UI
+    Support/        color + sample data
+server/             brand service (Swift / Vapor)
+bff/                aggregating BFF (TypeScript / Express)
+android/            core ported to Kotlin — same Brand.json
+```
+
+The **Model** lives in its own packages, so MVVM-Coordinator is enforced by dependency direction — `PulseUI` may import the model, never the reverse — not just by folder names.
+
 ## Android — one Brand.json, two platforms
 
 The architecture isn't iOS-specific. [`android/`](android) is a Kotlin port of the core — the same `Brand.json`, the same offline-first provider contract — proving the design ports cleanly rather than just claiming it does:
