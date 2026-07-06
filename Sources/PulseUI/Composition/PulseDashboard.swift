@@ -116,4 +116,46 @@ public enum PulseDashboard {
         .padding(16)
         .background(DashboardContentView.canvas)
     }
+
+    /// Every module failed — the readable, retryable error state.
+    @MainActor
+    public static func sampleFailedModules() -> [DashboardModule] {
+        [
+            DashboardModule(id: "weather", title: "Weather") {
+                ModulePlaceholder(kind: .failed("Couldn't load weather. Pull to retry."))
+            },
+            DashboardModule(id: "earthquakes", title: "Earthquakes") {
+                ModulePlaceholder(kind: .failed("Couldn't load earthquakes. Pull to retry."))
+            },
+        ]
+    }
+
+    // MARK: - Animated walkthrough
+
+    /// A scripted, start-to-finish tour rendered from the real views: loading →
+    /// loaded → two rebrands → drill into the earthquakes detail → search a city
+    /// → its weather. Each frame is a fixed-size, model-free view so
+    /// `ImageRenderer` can capture it; the executable stitches them into a GIF.
+    @MainActor
+    public static func walkthrough(now: Date = SampleData.referenceNow) -> [(view: AnyView, seconds: Double)] {
+        func frame(_ view: some View, _ seconds: Double) -> (view: AnyView, seconds: Double) {
+            let sized = view
+                .frame(width: 390, height: 440, alignment: .top)
+                .background(DashboardContentView.canvas)
+            return (AnyView(sized), seconds)
+        }
+
+        let pulse = BrandConfig()
+        let acme = BrandConfig(appName: "Acme Field Ops", accentColorHex: "#E05910", modules: ["earthquakes", "weather"])
+        let marina = BrandConfig(appName: "Marina Weather", accentColorHex: "#0F766E", modules: ["weather"])
+
+        return [
+            frame(DashboardContentView(config: pulse, modules: sampleModules(now: now)), 1.8),
+            frame(DashboardContentView(config: acme, modules: sampleModules(now: now)), 1.4),
+            frame(DashboardContentView(config: marina, modules: sampleModules(now: now)), 1.4),
+            frame(sampleQuakesDetail(now: now), 1.9),
+            frame(sampleCitySearchResults(), 1.9),
+            frame(sampleCitySearchWeather(now: now), 2.1),
+        ]
+    }
 }

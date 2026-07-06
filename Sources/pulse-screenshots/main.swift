@@ -42,6 +42,43 @@ func render(_ view: some View, width: CGFloat = 390, to url: URL) throws {
     print("wrote \(url.path)")
 }
 
+/// Stitch a sequence of rendered frames into an animated GIF — a start-to-finish
+/// walkthrough of the real views, no simulator required. Each frame is already
+/// sized, so it goes straight into the GIF with its per-frame dwell time.
+@MainActor
+func renderGIF(_ frames: [(view: AnyView, seconds: Double)], to url: URL) throws {
+    guard let destination = CGImageDestinationCreateWithURL(
+        url as CFURL, UTType.gif.identifier as CFString, frames.count, nil
+    ) else {
+        throw RenderError.noDestination(url.lastPathComponent)
+    }
+    let gifProperties = [
+        kCGImagePropertyGIFDictionary as String: [
+            kCGImagePropertyGIFLoopCount as String: 0,
+        ],
+    ]
+    CGImageDestinationSetProperties(destination, gifProperties as CFDictionary)
+
+    for frame in frames {
+        let renderer = ImageRenderer(content: frame.view)
+        renderer.scale = 2
+        guard let cgImage = renderer.cgImage else {
+            throw RenderError.noImage(url.lastPathComponent)
+        }
+        let frameProperties = [
+            kCGImagePropertyGIFDictionary as String: [
+                kCGImagePropertyGIFDelayTime as String: frame.seconds,
+            ],
+        ]
+        CGImageDestinationAddImage(destination, cgImage, frameProperties as CFDictionary)
+    }
+
+    guard CGImageDestinationFinalize(destination) else {
+        throw RenderError.writeFailed(url.lastPathComponent)
+    }
+    print("wrote \(url.path) (\(frames.count) frames)")
+}
+
 let brands: [(file: String, config: BrandConfig)] = [
     ("pulse-default.png", BrandConfig()),
     ("acme-field-ops.png", BrandConfig(
@@ -81,5 +118,13 @@ try await MainActor.run {
     try render(
         PulseDashboard.sampleQuakesDetail(),
         to: outputDirectory.appendingPathComponent("earthquakes-detail.png")
+    )
+    try render(
+        DashboardContentView(config: BrandConfig(), modules: PulseDashboard.sampleFailedModules()),
+        to: outputDirectory.appendingPathComponent("state-error.png")
+    )
+    try renderGIF(
+        PulseDashboard.walkthrough(),
+        to: outputDirectory.appendingPathComponent("walkthrough.gif")
     )
 }
